@@ -148,27 +148,27 @@
             margin: 12px 0;
             display: flex;
             justify-content: center;
-            gap: 15px;
+            gap: 10px;
             flex-wrap: wrap;
         }
         
-        .upload-btn, .download-btn {
+        .upload-btn, .download-btn, .view-btn {
             border: none;
-            padding: 10px 20px;
+            padding: 10px 15px;
             border-radius: 50px;
             cursor: pointer;
             font-size: 14px;
             font-weight: 600;
             color: white;
             transition: all 0.3s ease, transform 0.2s;
-            min-width: 80px;
+            min-width: 70px;
             display: flex;
             align-items: center;
             justify-content: center;
             box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
         
-        .upload-btn:hover, .download-btn:hover {
+        .upload-btn:hover, .download-btn:hover, .view-btn:hover {
             transform: translateY(-3px) scale(1.05);
             box-shadow: 0 6px 15px rgba(0,0,0,0.2);
         }
@@ -225,6 +225,9 @@
         .module:nth-child(1) .download-btn {
             background: linear-gradient(to right, #2ecc71, #27ae60);
         }
+        .module:nth-child(1) .view-btn {
+            background: linear-gradient(to right, #9b59b6, #8e44ad);
+        }
         
         /* 工具模块 - 动态橙色到红色渐变 */
         .module:nth-child(2) {
@@ -245,6 +248,9 @@
         .module:nth-child(2) .download-btn {
             background: linear-gradient(to right, #e74c3c, #c0392b);
         }
+        .module:nth-child(2) .view-btn {
+            background: linear-gradient(to right, #34495e, #2c3e50);
+        }
         
         /* AI模块 - 动态紫色到蓝色渐变 */
         .module:nth-child(3) {
@@ -264,6 +270,9 @@
         }
         .module:nth-child(3) .download-btn {
             background: linear-gradient(to right, #3498db, #2980b9);
+        }
+        .module:nth-child(3) .view-btn {
+            background: linear-gradient(to right, #2ecc71, #27ae60);
         }
         
         .feedback-section {
@@ -347,6 +356,63 @@
             display: none;
         }
         
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+        
+        .close:hover {
+            color: black;
+        }
+        
+        .file-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .file-table th, .file-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .file-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        .file-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        
         @media (max-width: 768px) {
             .main-title {
                 font-size: 32px;
@@ -372,11 +438,15 @@
             .upload-area {
                 flex-direction: column;
                 align-items: center;
-                gap: 10px;
+                gap: 8px;
             }
             
             .feedback-form {
                 flex-direction: column;
+            }
+            
+            .modal-content {
+                width: 95%;
             }
         }
     </style>
@@ -402,6 +472,7 @@
             <div class="upload-area">
                 <button class="upload-btn" onclick="document.getElementById('software-upload').click()">上传</button>
                 <button class="download-btn" onclick="downloadFile('software')">下载</button>
+                <button class="view-btn" onclick="viewFiles('software')">查看</button>
                 <input type="file" id="software-upload" class="file-input" onchange="handleUpload('software', this.files)">
             </div>
             <div class="progress-container" id="software-progress">
@@ -419,6 +490,7 @@
             <div class="upload-area">
                 <button class="upload-btn" onclick="document.getElementById('tool-upload').click()">上传</button>
                 <button class="download-btn" onclick="downloadFile('tool')">下载</button>
+                <button class="view-btn" onclick="viewFiles('tool')">查看</button>
                 <input type="file" id="tool-upload" class="file-input" onchange="handleUpload('tool', this.files)">
             </div>
             <div class="progress-container" id="tool-progress">
@@ -436,6 +508,7 @@
             <div class="upload-area">
                 <button class="upload-btn" onclick="document.getElementById('ai-upload').click()">上传</button>
                 <button class="download-btn" onclick="downloadFile('ai')">下载</button>
+                <button class="view-btn" onclick="viewFiles('ai')">查看</button>
                 <input type="file" id="ai-upload" class="file-input" onchange="handleUpload('ai', this.files)">
             </div>
             <div class="progress-container" id="ai-progress">
@@ -451,6 +524,26 @@
             <input type="text" class="feedback-input" id="feedbackContent" name="feedback" placeholder="请输入您想反馈的内容...">
             <button type="submit" class="submit-btn">提交反馈</button>
         </form>
+    </div>
+
+    <!-- 文件查看模态框 -->
+    <div id="fileModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">文件列表</h2>
+            <table class="file-table">
+                <thead>
+                    <tr>
+                        <th>文件名</th>
+                        <th>类型</th>
+                        <th>大小</th>
+                        <th>上传日期</th>
+                    </tr>
+                </thead>
+                <tbody id="fileTableBody">
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
@@ -516,6 +609,37 @@
             const latestFile = files[type][files[type].length - 1];
             alert(`正在下载 ${type === 'software' ? '软件' : type === 'tool' ? '工具' : 'AI资料'}: ${latestFile.name}`);
             // 实际应用中这里会执行真实的下载操作
+        }
+        
+        function viewFiles(type) {
+            const modal = document.getElementById('fileModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const fileTableBody = document.getElementById('fileTableBody');
+            
+            // 设置模态框标题
+            modalTitle.textContent = `${type === 'software' ? '软件' : type === 'tool' ? '工具' : 'AI资料'}列表`;
+            
+            // 清空表格内容
+            fileTableBody.innerHTML = '';
+            
+            // 填充文件数据
+            if(files[type].length === 0) {
+                fileTableBody.innerHTML = '<tr><td colspan="4">暂无文件</td></tr>';
+            } else {
+                files[type].forEach(file => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${file.name}</td>
+                        <td>${file.type}</td>
+                        <td>${file.size}</td>
+                        <td>${file.date}</td>
+                    `;
+                    fileTableBody.appendChild(row);
+                });
+            }
+            
+            // 显示模态框
+            modal.style.display = 'block';
         }
         
         function updateFileList(type) {
@@ -593,7 +717,23 @@
                 // 清空表单
                 this.reset();
             });
+            
+            // 关闭模态框事件
+            document.querySelector('.close').addEventListener('click', function() {
+                document.getElementById('fileModal').style.display = 'none';
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', function(event) {
+                const modal = document.getElementById('fileModal');
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
         };
     </script>
 </body>
 </html>
+
+
+
