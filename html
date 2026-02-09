@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>软件工具AI分享平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            width: 100%;
+            max-width: 1200px;
+        }
+        
+        .main-title {
+            font-size: 42px;
+            font-weight: 800;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            background: linear-gradient(45deg, #3498db, #2ecc71, #9b59b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            font-size: 18px;
+            color: #7f8c8d;
+            max-width: 700px;
+            margin: 0 auto 20px;
+        }
+        
+        .search-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto 30px;
+            position: relative;
+        }
+        
+        .search-bar {
+            width: 100%;
+            padding: 15px 20px;
+            border-radius: 50px;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            font-size: 16px;
+            outline: none;
+        }
+        
+        .search-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            min-height: 60vh;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .module {
+            flex: 1;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+            overflow: hidden;
+            margin: 0 10px;
+            position: relative;
+            color: #333;
+            padding: 20px 15px;
+            min-height: 260px;
+            max-width: 350px;
+        }
+        
+        .module:hover {
+            transform: translateY(-12px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+        
+        .module-header {
+            text-align: center;
+            width: 100%;
+        }
+        
+        .module-icon {
+            font-size: 42px;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+        
+        .module-title {
+            font-size: 19px;
+            font-weight: bold;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+        
+        .module-desc {
+            font-size: 14px;
+            color: #7f8c8d;
+            text-align: center;
+            opacity: 0.9;
+        }
+        
+        .upload-area {
+            width: 100%;
+            padding: 10px 0;
+            text-align: center;
+            margin: 12px 0;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .upload-btn, .download-btn {
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease, transform 0.2s;
+            min-width: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        
+        .upload-btn:hover, .download-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-list {
+            width: 100%;
+            padding: 0 12px;
+            text-align: left;
+            font-size: 12px;
+            color: #666;
+            max-height: 80px;
+            overflow-y: auto;
+            border-top: 1px solid rgba(255,255,255,0.3);
+            padding-top: 8px;
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 8px 0;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: rgba(255,255,255,0.8);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+        
+        /* 软件模块 - 动态青绿色到粉色渐变 */
+        .module:nth-child(1) {
+            background: linear-gradient(-45deg, #a8edea, #fed6e3, #a8edea, #fed6e3);
+            background-size: 400% 400%;
+            animation: gradientShift1 8s ease infinite;
+        }
+        
+        @keyframes gradientShift1 {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .module:nth-child(1) .upload-btn {
+            background: linear-gradient(to right, #3498db, #2980b9);
+        }
+        .module:nth-child(1) .download-btn {
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+        }
+        
+        /* 工具模块 - 动态橙色到红色渐变 */
+        .module:nth-child(2) {
+            background: linear-gradient(-45deg, #ffecd2, #fcb69f, #ffecd2, #fcb69f);
+            background-size: 400% 400%;
+            animation: gradientShift2 10s ease infinite;
+        }
+        
+        @keyframes gradientShift2 {
+            0% { background-position: 100% 50%; }
+            50% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+        
+        .module:nth-child(2) .upload-btn {
+            background: linear-gradient(to right, #f39c12, #e67e22);
+        }
+        .module:nth-child(2) .download-btn {
+            background: linear-gradient(to right, #e74c3c, #c0392b);
+        }
+        
+        /* AI模块 - 动态紫色到蓝色渐变 */
+        .module:nth-child(3) {
+            background: linear-gradient(-45deg, #a8c8ec, #d2b4f0, #a8c8ec, #d2b4f0);
+            background-size: 400% 400%;
+            animation: gradientShift3 12s ease infinite;
+        }
+        
+        @keyframes gradientShift3 {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+        
+        .module:nth-child(3) .upload-btn {
+            background: linear-gradient(to right, #9b59b6, #8e44ad);
+        }
+        .module:nth-child(3) .download-btn {
+            background: linear-gradient(to right, #3498db, #2980b9);
+        }
+        
+        .feedback-section {
+            width: 100%;
+            max-width: 600px;
+            background: linear-gradient(-45deg, #a8edea, #fed6e3, #a8edea, #fed6e3);
+            background-size: 400% 400%;
+            animation: gradientShift1 8s ease infinite;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            padding: 18px;
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            color: white;
+        }
+        
+        .feedback-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 3px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .feedback-form {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .feedback-input {
+            flex: 1;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            background: rgba(255,255,255, 0.8);
+            color: #333;
+            transition: all 0.3s;
+        }
+        
+        .feedback-input::placeholder {
+            color: #7f8c8d;
+        }
+        
+        .feedback-input:focus {
+            outline: none;
+            background: white;
+            box-shadow: 0 0 0 2px rgba(255,255,255, 0.8);
+        }
+        
+        .submit-btn {
+            background: rgba(255,255,255, 0.3);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s, transform 0.2s;
+            backdrop-filter: blur(5px);
+        }
+        
+        .submit-btn:hover {
+            background: rgba(255,255,255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .drag-area {
+            border: 2px dashed rgba(255,255,255,0.5);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 32px;
+            }
+            
+            .subtitle {
+                font-size: 16px;
+            }
+            
+            .container {
+                flex-direction: column;
+                height: auto;
+                align-items: center;
+            }
+            
+            .module {
+                width: 100%;
+                max-width: 450px;
+                margin: 15px 0;
+                min-height: 240px;
+            }
+            
+            .upload-area {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .feedback-form {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="main-title">🚀 共享天地 🚀</h1>
+        <p class="subtitle">汇聚优质软件、实用工具与前沿AI资讯，打造一站式资源共享平台</p>
+        
+        <div class="search-container">
+            <input type="text" class="search-bar" placeholder="搜索软件、工具或AI资讯...">
+            <button class="search-btn">🔍</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="module">
+            <div class="module-header">
+                <div class="module-icon">💻</div>
+                <div class="module-title">软件共享</div>
+                <div class="module-desc">提供各类实用软件资源</div>
+            </div>
+            <div class="upload-area">
+                <button class="upload-btn" onclick="document.getElementById('software-upload').click()">上传</button>
+                <button class="download-btn" onclick="downloadFile('software')">下载</button>
+                <input type="file" id="software-upload" class="file-input" onchange="handleUpload('software', this.files)">
+            </div>
+            <div class="progress-container" id="software-progress">
+                <div class="progress-bar" id="software-bar"></div>
+            </div>
+            <div class="file-list" id="software-files"></div>
+        </div>
+        
+        <div class="module">
+            <div class="module-header">
+                <div class="module-icon">🔧</div>
+                <div class="module-title">工具分享</div>
+                <div class="module-desc">精选优质工具推荐</div>
+            </div>
+            <div class="upload-area">
+                <button class="upload-btn" onclick="document.getElementById('tool-upload').click()">上传</button>
+                <button class="download-btn" onclick="downloadFile('tool')">下载</button>
+                <input type="file" id="tool-upload" class="file-input" onchange="handleUpload('tool', this.files)">
+            </div>
+            <div class="progress-container" id="tool-progress">
+                <div class="progress-bar" id="tool-bar"></div>
+            </div>
+            <div class="file-list" id="tool-files"></div>
+        </div>
+        
+        <div class="module">
+            <div class="module-header">
+                <div class="module-icon">🧠</div>
+                <div class="module-title">AI分享</div>
+                <div class="module-desc">前沿AI技术资讯</div>
+            </div>
+            <div class="upload-area">
+                <button class="upload-btn" onclick="document.getElementById('ai-upload').click()">上传</button>
+                <button class="download-btn" onclick="downloadFile('ai')">下载</button>
+                <input type="file" id="ai-upload" class="file-input" onchange="handleUpload('ai', this.files)">
+            </div>
+            <div class="progress-container" id="ai-progress">
+                <div class="progress-bar" id="ai-bar"></div>
+            </div>
+            <div class="file-list" id="ai-files"></div>
+        </div>
+    </div>
+    
+    <div class="feedback-section">
+        <h2 class="feedback-title">💬 内容反馈</h2>
+        <form class="feedback-form" id="feedbackForm">
+            <input type="text" class="feedback-input" id="feedbackContent" name="feedback" placeholder="请输入您想反馈的内容...">
+            <button type="submit" class="submit-btn">提交反馈</button>
+        </form>
+    </div>
+
+    <script>
+        // 存储各类型文件信息
+        let files = {
+            software: [],
+            tool: [],
+            ai: []
+        };
+        
+        function handleUpload(type, fileInput) {
+            if(fileInput.length > 0) {
+                const file = fileInput[0];
+                
+                // 显示上传进度
+                showProgress(type, true);
+                
+                // 模拟上传进度
+                simulateUploadProgress(type, file);
+                
+                setTimeout(() => {
+                    const fileInfo = {
+                        name: file.name,
+                        size: formatFileSize(file.size),
+                        date: new Date().toLocaleDateString(),
+                        type: getFileType(file.name)
+                    };
+                    
+                    files[type].push(fileInfo);
+                    updateFileList(type);
+                    showProgress(type, false);
+                    
+                    // 显示上传成功提示
+                    alert(`${type === 'software' ? '软件' : type === 'tool' ? '工具' : 'AI资料'} "${file.name}" 上传成功！`);
+                }, 1500); // 模拟上传时间
+            }
+        }
+        
+        function simulateUploadProgress(type, file) {
+            const progressBar = document.getElementById(`${type}-bar`);
+            let width = 0;
+            const interval = setInterval(() => {
+                if(width >= 100) {
+                    clearInterval(interval);
+                } else {
+                    width += 5;
+                    progressBar.style.width = width + '%';
+                }
+            }, 50);
+        }
+        
+        function showProgress(type, show) {
+            const progressContainer = document.getElementById(`${type}-progress`);
+            progressContainer.style.display = show ? 'block' : 'none';
+        }
+        
+        function downloadFile(type) {
+            if(files[type].length === 0) {
+                alert('暂无文件可供下载');
+                return;
+            }
+            
+            const latestFile = files[type][files[type].length - 1];
+            alert(`正在下载 ${type === 'software' ? '软件' : type === 'tool' ? '工具' : 'AI资料'}: ${latestFile.name}`);
+            // 实际应用中这里会执行真实的下载操作
+        }
+        
+        function updateFileList(type) {
+            const fileListElement = document.getElementById(`${type}-files`);
+            fileListElement.innerHTML = '<strong>最近上传:</strong><br>';
+            
+            // 显示最新的3个文件
+            const recentFiles = files[type].slice(-3).reverse();
+            recentFiles.forEach(file => {
+                fileListElement.innerHTML += 
+                    `<span title="${file.type}">${file.type}</span> • ${file.name} (${file.size})<br>`;
+            });
+        }
+        
+        function getFileType(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'];
+            const docExts = ['pdf', 'doc', 'docx', 'txt', 'rtf', 'odt'];
+            const videoExts = ['mp4', 'avi', 'mov', 'wmv', 'flv'];
+            const audioExts = ['mp3', 'wav', 'ogg', 'flac', 'aac'];
+            
+            if(imageExts.includes(ext)) return '🖼️';
+            if(docExts.includes(ext)) return '📄';
+            if(videoExts.includes(ext)) return '🎬';
+            if(audioExts.includes(ext)) return '🎵';
+            return '📁';
+        }
+        
+        function formatFileSize(bytes) {
+            if(bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // 初始化文件列表显示
+        window.onload = function() {
+            updateFileList('software');
+            updateFileList('tool');
+            updateFileList('ai');
+            
+            // 搜索功能
+            document.querySelector('.search-btn').addEventListener('click', function() {
+                const searchTerm = document.querySelector('.search-bar').value.toLowerCase();
+                if(searchTerm) {
+                    alert(`搜索功能：正在搜索 "${searchTerm}" 相关资源...`);
+                }
+            });
+            
+            // 回车键搜索
+            document.querySelector('.search-bar').addEventListener('keypress', function(e) {
+                if(e.key === 'Enter') {
+                    const searchTerm = this.value.toLowerCase();
+                    if(searchTerm) {
+                        alert(`搜索功能：正在搜索 "${searchTerm}" 相关资源...`);
+                    }
+                }
+            });
+            
+            // 反馈表单提交处理
+            document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const feedbackContent = document.getElementById('feedbackContent').value;
+                
+                if(!feedbackContent.trim()) {
+                    alert('请输入反馈内容！');
+                    return;
+                }
+                
+                // 这里可以添加实际的提交逻辑（如发送到服务器）
+                alert(`感谢您的反馈：${feedbackContent}`);
+                
+                // 清空表单
+                this.reset();
+            });
+        };
+    </script>
+</body>
+</html>
