@@ -547,13 +547,24 @@
     </div>
 
     <script>
-        // 存储各类型文件信息
-        let files = {
-            software: [],
-            tool: [],
-            ai: []
-        };
-        
+        // 从localStorage加载文件数据
+        function loadFilesFromStorage() {
+            const stored = localStorage.getItem('sharedFiles');
+            return stored ? JSON.parse(stored) : {
+                software: [],
+                tool: [],
+                ai: []
+            };
+        }
+
+        // 保存文件数据到localStorage
+        function saveFilesToStorage() {
+            localStorage.setItem('sharedFiles', JSON.stringify(files));
+        }
+
+        // 存储各类型文件信息（从localStorage初始化）
+        let files = loadFilesFromStorage();
+
         function handleUpload(type, fileInput) {
             if(fileInput.length > 0) {
                 const file = fileInput[0];
@@ -575,6 +586,9 @@
                     files[type].push(fileInfo);
                     updateFileList(type);
                     showProgress(type, false);
+                    
+                    // 保存到localStorage
+                    saveFilesToStorage();
                     
                     // 显示上传成功提示
                     alert(`${type === 'software' ? '软件' : type === 'tool' ? '工具' : 'AI资料'} "${file.name}" 上传成功！`);
@@ -678,6 +692,7 @@
         
         // 初始化文件列表显示
         window.onload = function() {
+            // 更新页面上的文件列表
             updateFileList('software');
             updateFileList('tool');
             updateFileList('ai');
@@ -731,6 +746,11 @@
                 }
             });
         };
+        
+        // 页面卸载前保存数据
+        window.addEventListener('beforeunload', function() {
+            saveFilesToStorage();
+        });
     </script>
 </body>
 </html>
