@@ -470,10 +470,10 @@
 
     <script>
         // ==============================
-        // 🔑 请在这里填入你的 Supabase 信息（仅需改这两行！）
+        // 🔑 Supabase 配置（已自动填充）
         // ==============================
-        const SUPABASE_URL = 'https://cdtuwahapbytcubvzgik.supabase.co';   // ← 改成你的 URL
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkdHV3YWhhcGJ5dGN1YnZ6Z2lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2MTI1MDEsImV4cCI6MjA4NjE4ODUwMX0.XPY9zWgUisWlisVpu9NsfwWabjw5mgzjLm-CtqdCQAQ';                // ← 改成你的 anon key
+        const SUPABASE_URL = 'https://cdtuwahapbytcubvzgik.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkdHV3YWhhcGJ5dGN1YnZ6Z2lrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2MTI1MDEsImV4cCI6MjA4NjE4ODUwMX0.XPY9zWgUisWlisVpu9NsfwWabjw5mgzjLm-CtqdCQAQ';
 
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -506,10 +506,18 @@
             }
         }
 
-        // 上传文件元数据
+        // 上传文件元数据（已修复：添加 file_type 字段）
         async function handleUpload(type, fileInput) {
             if (fileInput.length === 0) return;
             const file = fileInput[0];
+
+            // ✅ 自动提取文件扩展名作为 file_type
+            const fileName = file.name;
+            let fileExtension = fileName.split('.').pop();
+            if (!fileExtension) {
+                fileExtension = 'bin'; // 无扩展名时默认为 bin
+            }
+            fileExtension = fileExtension.toLowerCase();
 
             showProgress(type, true);
             simulateUploadProgress(type, file);
@@ -518,7 +526,8 @@
                 try {
                     const fileInfo = {
                         category: type,
-                        file_name: file.name,
+                        file_name: fileName,
+                        file_type: fileExtension,   // ✅ 关键修复：满足 NOT NULL 约束
                         file_size: file.size,
                         created_at: new Date().toISOString()
                     };
@@ -531,7 +540,7 @@
 
                     await loadFilesFromDB();
                     showProgress(type, false);
-                    alert(`✅ "${file.name}" 上传成功！`);
+                    alert(`✅ "${fileName}" 上传成功！`);
                 } catch (err) {
                     console.error('上传失败:', err);
                     alert('❌ 上传失败: ' + (err.message || '未知错误'));
@@ -579,8 +588,7 @@
                 fileTableBody.innerHTML = '<tr><td colspan="4">暂无文件</td></tr>';
             } else {
                 files[type].forEach(file => {
-                    const row = document.createElement('tr');
-                    const icon = getFileType(file.file_name);
+                    const icon = getFileTypeByExt(file.file_type); // ✅ 使用 file_type
                     const size = formatFileSize(file.file_size);
                     const date = new Date(file.created_at).toLocaleDateString();
                     row.innerHTML = `
@@ -600,18 +608,19 @@
             el.innerHTML = '<strong>最近上传:</strong><br>';
             const recent = files[type].slice(0, 3);
             recent.forEach(file => {
-                const icon = getFileType(file.file_name);
+                const icon = getFileTypeByExt(file.file_type); // ✅ 使用 file_type
                 const size = formatFileSize(file.file_size);
                 el.innerHTML += `<span>${icon}</span> • ${file.file_name} (${size})<br>`;
             });
         }
 
-        function getFileType(filename) {
-            const ext = filename.split('.').pop().toLowerCase();
+        // ✅ 新增：根据 file_type 显示图标（更高效）
+        function getFileTypeByExt(ext) {
             const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'];
             const docExts = ['pdf', 'doc', 'docx', 'txt', 'rtf', 'odt'];
             const videoExts = ['mp4', 'avi', 'mov', 'wmv', 'flv'];
             const audioExts = ['mp3', 'wav', 'ogg', 'flac', 'aac'];
+            
             if(imageExts.includes(ext)) return '🖼️';
             if(docExts.includes(ext)) return '📄';
             if(videoExts.includes(ext)) return '🎬';
